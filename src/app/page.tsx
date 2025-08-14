@@ -86,29 +86,75 @@ const getColor = (colorValue: CellValue): string => {
     case 7:
       return 'red';
     default:
-      return 'transparent'; // 空のセル
+      return 'transparent';
   }
+};
+
+const canMove = (tetromino: Tetromino, board: Board): boolean => {
+  const { shape, position } = tetromino;
+
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x] !== 0) {
+        const boardX = position.x + x;
+        const boardY = position.y + y;
+
+        if (boardX < 0 || boardX >= BOARD_WIDTH || boardY >= BOARD_HEIGHT) {
+          return false;
+        }
+
+        if (boardY >= 0 && board[boardY][boardX] !== 0) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+};
+
+const mergeTetromino = (tetromino: Tetromino, board: Board): Board => {
+  const newBoard = board.map((row) => [...row]);
+  const { shape, position, color } = tetromino;
+
+  shape.forEach((row, y) => {
+    row.forEach((cll, x) => {
+      if (cell !== 0) {
+        const boardX = position.x + x;
+        const boardY = position.y + y;
+        if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+          newBoard[boardY][boardX] = color;
+        }
+      }
+    });
+  });
+  return newBoard;
 };
 
 export default function Home() {
   const [board, setBoard] = useState<Board>(createEnptyBoard());
-  const [currentTetromino, setCurrentTetromino] = useState<Tetromino>(createNewTetromino());
+  const [currentTetromino, setCurrentTetromino] = useState<Tetromino | null>(createNewTetromino());
 
   useEffect(() => {
     const timerId = setInterval(() => {
-      setCurrentTetromino((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          position: { ...prev.position, y: prev.position.y + 1 },
-        };
-      });
+      if (!currentTetromino) return;
+
+      const nextTetromino = {
+        ...currentTetromino,
+        position: { ...currentTetromino.position, y: currentTetromino.position.y + 1 },
+      };
+
+      if (canMove(nextTetromino, board)) {
+        setCurrentTetromino(nextTetromino);
+      } else {
+        const newBoard = mergeTetromino(currentTetromino, board);
+        setBoard(newBoard);
+        setCurrentTetromino(createNewTetromino());
+      }
     }, 500);
     return () => clearInterval(timerId);
-  }, []);
+  }, [currentTetromino, board]);
 
   const mergedBoard = board.map((row) => [...row]);
-
   if (currentTetromino) {
     const { shape, position, color } = currentTetromino;
     shape.forEach((row, y) => {
