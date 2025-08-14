@@ -117,7 +117,7 @@ const mergeTetromino = (tetromino: Tetromino, board: Board): Board => {
   const { shape, position, color } = tetromino;
 
   shape.forEach((row, y) => {
-    row.forEach((cll, x) => {
+    row.forEach((cell, x) => {
       if (cell !== 0) {
         const boardX = position.x + x;
         const boardY = position.y + y;
