@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './page.module.css';
 
 type CellValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -166,6 +166,35 @@ export default function Home() {
     }, 500);
     return () => clearInterval(timerId);
   }, [currentTetromino, board]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!currentTetromino) return;
+
+      let newTetromino = { ...currentTetromino };
+      let moved = false;
+
+      if (e.key === 'ArrowLeft') {
+        newTetromino.position.x -= 1;
+        if (canMove(newTetromino, board)) moved = true;
+      } else if (e.key === 'ArrowRight') {
+        newTetromino.position.x += 1;
+        if (canMove(newTetromino, board)) moved = true;
+      } else if (e.key === 'ArrowDown') {
+        newTetromino.position.y += 1;
+        if (canMove(newTetromino, board)) moved = true;
+      } else if (e.key === 'ArrowUp') {
+        const rotatedShape = rotateTetromino(currentTetromino.shape);
+        newTetromino = { ...currentTetromino, shape: rotatedShape };
+        if (canMove(newTetromino, board)) moved = true;
+      }
+
+      if (moved) {
+        setCurrentTetromino(newTetromino);
+      }
+    },
+    [currentTetromino, board],
+  );
 
   const mergedBoard = board.map((row) => [...row]);
   if (currentTetromino) {
