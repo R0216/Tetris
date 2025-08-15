@@ -146,8 +146,18 @@ const rotateTetromino = (shape: number[][]): number[][] => {
 export default function Home() {
   const [board, setBoard] = useState<Board>(createEnptyBoard());
   const [currentTetromino, setCurrentTetromino] = useState<Tetromino | null>(createNewTetromino());
+  const [gameState, setGameState] = useState<'ready' | 'playing' | 'over'>('ready');
+
+  const startGame = () => {
+    const newTetromino = createNewTetromino();
+    setBoard(createEnptyBoard());
+    setCurrentTetromino(newTetromino);
+    setGameState('playing');
+  };
 
   useEffect(() => {
+    if (gameState !== 'playing') return;
+
     const timerId = setInterval(() => {
       if (!currentTetromino) return;
 
@@ -160,41 +170,67 @@ export default function Home() {
         setCurrentTetromino(nextTetromino);
       } else {
         const newBoard = mergeTetromino(currentTetromino, board);
+        const clearedBoard = clearRows(newBoard);
         setBoard(newBoard);
-        setCurrentTetromino(createNewTetromino());
+
+        const nextTetro = createNewTetromino();
+        if (canMove(nextTetro, clearedBoard)) {
+          setCurrentTetromino(nextTetro);
+        } else {
+          setGameState('over');
+        }
       }
     }, 500);
     return () => clearInterval(timerId);
-  }, [currentTetromino, board]);
+  }, [currentTetromino, board, gameState]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (!currentTetromino) return;
+      if (gameState !== 'playing' || !currentTetromino) return;
 
       let newTetromino = { ...currentTetromino };
-      let moved = false;
 
       if (e.key === 'ArrowLeft') {
         newTetromino.position.x -= 1;
-        if (canMove(newTetromino, board)) moved = true;
+        if (canMove(newTetromino, board));
       } else if (e.key === 'ArrowRight') {
         newTetromino.position.x += 1;
-        if (canMove(newTetromino, board)) moved = true;
+        if (canMove(newTetromino, board));
       } else if (e.key === 'ArrowDown') {
         newTetromino.position.y += 1;
-        if (canMove(newTetromino, board)) moved = true;
+        if (canMove(newTetromino, board));
       } else if (e.key === 'ArrowUp') {
         const rotatedShape = rotateTetromino(currentTetromino.shape);
         newTetromino = { ...currentTetromino, shape: rotatedShape };
-        if (canMove(newTetromino, board)) moved = true;
+        if (canMove(newTetromino, board));
       }
 
-      if (moved) {
+      if (canMove(newTetromino, board)) {
         setCurrentTetromino(newTetromino);
+      } else {
+        if (e.key === 'ArrowDown') {
+          const newBoard = mergeTetromino(currentTetromino, board);
+          const clearedBoard = clearRows(newBoard);
+          setBoard(clearedBoard);
+
+          const nextTetro = createNewTetromino();
+          if (canMove(nextTetro, clearedBoard)) {
+            setCurrentTetromino(nextTetro);
+          } else {
+            setGameState('over');
+          }
+        }
       }
     },
-    [currentTetromino, board],
+    [currentTetromino, board, gameState],
   );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   const mergedBoard = board.map((row) => [...row]);
   if (currentTetromino) {
@@ -223,6 +259,21 @@ export default function Home() {
               style={{ backgroundColor: getColor(color) }}
             />
           )),
+        )}
+      </div>
+      <div className={styles.controls}>
+        {gameState === 'ready' && (
+          <button className={styles.button} onClick={startGame}>
+            Start
+          </button>
+        )}
+        {gameState === 'over' && (
+          <div>
+            <h2 className={styles.gameOver}>Game Over!</h2>
+            <button className={styles.button} onClick={startGame}>
+              Play Again
+            </button>
+          </div>
         )}
       </div>
     </div>
