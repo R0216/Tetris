@@ -130,6 +130,19 @@ const mergeTetromino = (tetromino: Tetromino, board: Board): Board => {
   return newBoard;
 };
 
+const clearRows = (board: Board): Board => {
+  const newBoard = board.filter((row) => row.some((cell) => cell === 0));
+  while (newBoard.length < BOARD_HEIGHT) {
+    newBoard.unshift(Array.from({ length: BOARD_WIDTH }, () => 0));
+  }
+  return newBoard;
+};
+
+const rotateTetromino = (shape: number[][]): number[][] => {
+  const newShape = shape[0].map((_, colIndex) => shape.map((row) => row[colIndex]).reverse());
+  return newShape;
+};
+
 export default function Home() {
   const [board, setBoard] = useState<Board>(createEnptyBoard());
   const [currentTetromino, setCurrentTetromino] = useState<Tetromino | null>(createNewTetromino());
