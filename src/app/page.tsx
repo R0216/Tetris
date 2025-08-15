@@ -192,17 +192,13 @@ export default function Home() {
 
       if (e.key === 'ArrowLeft') {
         newTetromino.position.x -= 1;
-        if (canMove(newTetromino, board));
       } else if (e.key === 'ArrowRight') {
         newTetromino.position.x += 1;
-        if (canMove(newTetromino, board));
       } else if (e.key === 'ArrowDown') {
         newTetromino.position.y += 1;
-        if (canMove(newTetromino, board));
       } else if (e.key === 'ArrowUp') {
         const rotatedShape = rotateTetromino(currentTetromino.shape);
         newTetromino = { ...currentTetromino, shape: rotatedShape };
-        if (canMove(newTetromino, board));
       }
 
       if (canMove(newTetromino, board)) {
